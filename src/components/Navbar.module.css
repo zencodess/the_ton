@@ -1,0 +1,120 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-xl);
+    background: rgba(240, 230, 216, 0.95);
+    /* Semi-transparent parchment instead of dark velvet */
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--gold-light);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navBrand {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--wisteria);
+    /* Primary branding in wisteria */
+    text-decoration: none;
+    letter-spacing: 0.02em;
+}
+
+.navBrand span {
+    color: var(--duck-egg-dark);
+    /* Accent in duck egg */
+}
+
+.navLinks {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    list-style: none;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    /* Dark contrast against light navbar */
+    text-decoration: none;
+    transition: color var(--transition-fast);
+    position: relative;
+}
+
+.navLink:hover,
+.navLink.active {
+    color: var(--wisteria-dark);
+}
+
+.navLink::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--wisteria-dark);
+    transition: width var(--transition-normal);
+}
+
+.navLink:hover::after,
+.navLink.active::after {
+    width: 100%;
+}
+
+.navProfile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+}
+
+.mobileMenuBtn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--wisteria-dark);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: var(--space-xs);
+}
+
+.mobileMenu {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--parchment);
+    border-bottom: 2px solid var(--gold-light);
+    padding: var(--space-lg);
+    z-index: 99;
+}
+
+.mobileMenu.open {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.mobileMenu .navLink {
+    font-size: 1.125rem;
+    padding: var(--space-sm) 0;
+}
+
+@media (max-width: 768px) {
+    .navLinks {
+        display: none;
+    }
+
+    .mobileMenuBtn {
+        display: block;
+    }
+}
