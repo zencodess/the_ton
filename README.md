@@ -5,6 +5,7 @@
 **The Ton** transforms your daily group chat into an exclusive, highly anticipated ritual of connection and playful mystery — dripping in Regency-era elegance.
 
 🌐 **Live App:** [https://the-ton.vercel.app/login](https://the-ton.vercel.app/login)
+
 📖 **Read the Story:** [I Built a Bridgerton-Inspired Social App for Friend Groups on Medium](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)
 
 ---
