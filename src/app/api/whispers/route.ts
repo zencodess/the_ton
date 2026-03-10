@@ -1,23 +1,12 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/utils/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req: Request) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-        console.error("Missing Supabase Service Role Key or URL.");
-        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-    }
-
-    const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceRoleKey);
-
     try {
         const supabase = await createClient();
         const { data: userData, error: authError } = await supabase.auth.getUser();
@@ -38,31 +27,20 @@ export async function POST(req: Request) {
         const isAbusive = moderationResponse.results[0].flagged;
 
         if (isAbusive) {
-            // Log the strike
-            const { data: currentStrikeData } = await supabaseAdmin
-                .from('user_strikes')
-                .select('strike_count')
-                .eq('user_id', userId)
-                .single();
+            // Log the strike using the secure database function
+            const { data: newStrikeCount, error: rpcError } = await supabase.rpc('increment_user_strike');
 
-            const currentStrikes = currentStrikeData?.strike_count || 0;
-            const newStrikeCount = currentStrikes + 1;
+            if (rpcError) {
+                console.error("Failed to increment strike:", rpcError);
+            }
 
-            await supabaseAdmin.from('user_strikes').upsert({
-                user_id: userId,
-                strike_count: newStrikeCount,
-                last_strike_at: new Date().toISOString()
-            });
-
-            // If threshold reached (1), notify admin by creating an alert
-            if (newStrikeCount >= 1) {
-                await supabaseAdmin.from('admin_alerts').insert({
+            // If threshold reached (1), notify admin by creating an alert using the standard client
+            if (newStrikeCount && newStrikeCount >= 1) {
+                await supabase.from('admin_alerts').insert({
                     user_id: userId,
                     alert_type: 'ABUSIVE_USER',
                     message: `User ${userId} has submitted abusive content and reached ${newStrikeCount} strike(s). Content flagged: ${JSON.stringify(moderationResponse.results[0].categories)}`
                 });
-
-                // You could also hook up Resend/SendGrid right here to email process.env.ADMIN_EMAIL
             }
 
             return NextResponse.json({
