@@ -3,41 +3,45 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from "@/app/page.module.css";
-import { Users } from 'lucide-react';
+import { Users, Plus } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import CreateGroupModal from '@/components/CreateGroupModal';
 
 export default function SocietiesPage() {
     const [groups, setGroups] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const supabase = createClient();
 
+    const fetchGroups = async () => {
+        setLoading(true);
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return;
+
+        const { data, error } = await supabase
+            .from('group_members')
+            .select(`
+                group_id,
+                groups (
+                    id,
+                    name
+                )
+            `)
+            .eq('user_id', userData.user.id);
+
+        if (data && !error) {
+            // Format the result to match the expected structure
+            const formattedGroups = data.map((d: any) => ({
+                id: d.groups.id,
+                name: d.groups.name,
+                member_count: "Many" // Count requires a separate function or complex join in Supabase
+            }));
+            setGroups(formattedGroups);
+        }
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchGroups = async () => {
-            const { data: userData } = await supabase.auth.getUser();
-            if (!userData.user) return;
-
-            const { data, error } = await supabase
-                .from('group_members')
-                .select(`
-                    group_id,
-                    groups (
-                        id,
-                        name
-                    )
-                `)
-                .eq('user_id', userData.user.id);
-
-            if (data && !error) {
-                // Format the result to match the expected structure
-                const formattedGroups = data.map((d: any) => ({
-                    id: d.groups.id,
-                    name: d.groups.name,
-                    member_count: "Many" // Count requires a separate function or complex join in Supabase
-                }));
-                setGroups(formattedGroups);
-            }
-            setLoading(false);
-        };
         fetchGroups();
     }, [supabase]);
 
@@ -62,6 +66,16 @@ export default function SocietiesPage() {
                     </div>
                     <div className="flourish"></div>
                 </header>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-md)' }}>
+                    <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="btn btn-primary animate-fade-in"
+                    >
+                        <Plus size={20} />
+                        Create Society
+                    </button>
+                </div>
 
                 <section style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     {loading ? (
@@ -102,6 +116,14 @@ export default function SocietiesPage() {
                     )}
                 </section>
             </div>
+
+            <CreateGroupModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={() => {
+                    fetchGroups();
+                }}
+            />
         </div>
     );
 }

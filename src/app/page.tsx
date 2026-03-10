@@ -27,7 +27,10 @@ export default function Foyer() {
         letters (
           id,
           letter_date,
-          body
+          body,
+          groups (
+            name
+          )
         )
       `)
       .eq('user_id', userData.user.id)
@@ -65,19 +68,38 @@ export default function Foyer() {
     }
 
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        body: JSON.stringify({ group_id: groupData.group_id })
-      });
-      const json = await res.json();
-      if (json.error) {
-        alert("Error generating letter: " + json.error);
-        console.error(json);
-      } else if (json.message) {
-        alert(json.message); // No whispers to summarize
-      } else {
-        alert("The Whistledown courier has arrived. Refreshing Foyer...");
+      const { data: groups } = await supabase.from('group_members').select('group_id').eq('user_id', userData.user.id);
+
+      if (!groups || groups.length === 0) {
+        alert('You are not in any societies yet.');
+        setGenerating(false);
+        return;
+      }
+
+      let generatedCount = 0;
+      let totalWhispers = 0;
+
+      for (const g of groups) {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          body: JSON.stringify({ group_id: g.group_id })
+        });
+        const json = await res.json();
+        if (json.success) generatedCount++;
+        if (json.message && json.message.includes('No new whispers')) {
+          // Skip
+        } else if (json.error) {
+          console.error(`Error for group ${g.group_id}:`, json.error);
+        } else {
+          totalWhispers++;
+        }
+      }
+
+      if (generatedCount > 0) {
+        alert(`The Whistledown courier has arrived for ${generatedCount} societies! Refreshing Foyer...`);
         fetchLetters();
+      } else {
+        alert("Lady Whistledown has found no new whispers to report in any of your societies today.");
       }
     } catch (e) {
       console.error(e);
@@ -97,10 +119,11 @@ export default function Foyer() {
     }}>
       <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-5xl)' }}>
         <header className={styles.pageHeader} style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
-          <h1 className="text-display animate-fade-in" style={{ fontSize: '3rem', color: 'var(--ink)', marginBottom: 'var(--space-sm)' }}>
+          <h1 className="text-display animate-fade-in" style={{ fontSize: '3rem', color: 'var(--ink)', marginBottom: 'var(--space-sm)', background: 'rgba(253, 248, 240, 0.85)', display: 'inline-block', padding: '0.25rem 1rem', borderRadius: 'var(--radius-lg)' }}>
             Letters for you
           </h1>
-          <p className="text-script" style={{ fontSize: '1.75rem', color: 'var(--ink)' }}>
+          <br />
+          <p className="text-script" style={{ fontSize: '1.75rem', color: 'var(--ink)', background: 'rgba(253, 248, 240, 0.85)', display: 'inline-block', padding: '0.25rem 1rem', borderRadius: 'var(--radius-lg)', marginTop: 'var(--space-sm)' }}>
             Read the latest from Lady Whistledown
           </p>
           <div className="flourish"></div>
@@ -108,9 +131,13 @@ export default function Foyer() {
 
         <section className={styles.feed}>
           {loading ? (
-            <p style={{ textAlign: 'center', color: 'var(--ink)' }}>Checking for couriers...</p>
+            <div style={{ background: 'rgba(253, 248, 240, 0.85)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
+              <p style={{ color: 'var(--ink)' }}>Checking for couriers...</p>
+            </div>
           ) : lettersFeed.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--ink)' }}>Your mailbox is dreadfully empty. Perhaps someone should whisper a secret...</p>
+            <div style={{ background: 'rgba(253, 248, 240, 0.85)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
+              <p style={{ color: 'var(--ink)' }}>Your mailbox is dreadfully empty. Perhaps someone should whisper a secret...</p>
+            </div>
           ) : (
             lettersFeed.map((delivery) => {
               const letter = Array.isArray(delivery.letters) ? delivery.letters[0] : delivery.letters;
@@ -134,7 +161,7 @@ export default function Foyer() {
                       padding: 'var(--space-md) var(--space-xl)',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
-                      backgroundColor: 'rgba(253, 248, 240, 0.85)',
+                      backgroundColor: 'rgba(253, 248, 240, 0.95)',
                       boxShadow: 'var(--shadow-card)',
                       display: 'flex',
                       alignItems: 'center',
@@ -146,9 +173,16 @@ export default function Foyer() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flex: 1, overflow: 'hidden' }}>
                       <div className="wax-seal" style={{ width: '32px', height: '32px', fontSize: '1rem' }}>W</div>
-                      <h3 className="text-display" style={{ fontSize: '1.25rem', margin: 0, color: 'var(--ink)', whiteSpace: 'nowrap' }}>
-                        Lady Whistledown's Society Papers
-                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ background: 'var(--wisteria)', color: 'white', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            {letter.groups?.name || 'Society'}
+                          </span>
+                          <h3 className="text-display" style={{ fontSize: '1.25rem', margin: 0, color: 'var(--ink)', whiteSpace: 'nowrap' }}>
+                            Society Papers
+                          </h3>
+                        </div>
+                      </div>
                       <span className="text-display" style={{ color: 'var(--ink-light)', opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         — {preview}
                       </span>
@@ -170,7 +204,7 @@ export default function Foyer() {
             disabled={generating}
             className="btn btn-outline"
             style={{ borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', background: 'rgba(253, 248, 240, 0.95)', opacity: generating ? 0.7 : 1 }}>
-            <Flame size={20} color="var(--velvet)" /> {generating ? "Summoning Courier..." : "TEST: Burn Whispers (Generate Letter)"}
+            <Flame size={20} color="var(--velvet)" /> {generating ? "Summoning Courier..." : "TEST: Publish Whispers to Lady Whistledown's Letter"}
           </button>
 
           <Link href="/whispers">

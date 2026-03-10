@@ -9,13 +9,17 @@ import { createClient } from '@/utils/supabase/client';
 export default function GroupPage() {
     const params = useParams();
     const [group, setGroup] = useState<any>(null);
+    const [role, setRole] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [inviteCopied, setInviteCopied] = useState(false);
     const supabase = createClient();
 
     useEffect(() => {
         const fetchGroup = async () => {
             const idToFetch = typeof params.id === 'string' ? params.id : params.id?.[0];
             if (!idToFetch) return;
+            const { data: userData } = await supabase.auth.getUser();
+            if (!userData.user) return;
 
             const { data, error } = await supabase
                 .from('groups')
@@ -23,7 +27,16 @@ export default function GroupPage() {
                 .eq('id', idToFetch)
                 .single();
 
+            const { data: memberData } = await supabase
+                .from('group_members')
+                .select('role')
+                .eq('group_id', idToFetch)
+                .eq('user_id', userData.user.id)
+                .single();
+
             if (data && !error) setGroup(data);
+            if (memberData) setRole(memberData.role);
+
             setLoading(false);
         };
         fetchGroup();
@@ -63,13 +76,54 @@ export default function GroupPage() {
                                 className="btn btn-outline"
                                 style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}
                                 onClick={() => {
-                                    alert("Invitation sent via Lady Whistledown's courier!");
+                                    if (group?.invite_code) {
+                                        const inviteUrl = `${window.location.origin}/invite/${group.invite_code}`;
+                                        navigator.clipboard.writeText(inviteUrl);
+                                        setInviteCopied(true);
+                                        setTimeout(() => setInviteCopied(false), 2000);
+                                    }
                                 }}
                             >
-                                <UserPlus size={18} /> Invite a Member
+                                <UserPlus size={18} /> {inviteCopied ? "Copied Link!" : "Invite a Member"}
                             </button>
                         </div>
                     </div>
+
+                    {role === 'admin' && (
+                        <div style={{ marginTop: 'var(--space-2xl)', textAlign: 'center' }}>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 'var(--space-sm)' }}>Admin Controls</p>
+                            <button
+                                className="btn"
+                                style={{ backgroundColor: '#b33939', color: 'white', border: 'none' }}
+                                onClick={async () => {
+                                    const confirmed = window.confirm("Are you absolutely sure you want to disband this Society? All whispers and memberships will be lost forever.");
+                                    if (confirmed) {
+                                        const { data: userData } = await supabase.auth.getUser();
+                                        console.log("Current user ID:", userData.user?.id);
+                                        console.log("Group created_by:", group.created_by, "Group ID:", group.id);
+                                        console.log("Role:", role);
+
+                                        const { error, count } = await supabase
+                                            .from('groups')
+                                            .delete({ count: 'exact' })
+                                            .eq('id', group.id);
+
+                                        console.log("Delete result — error:", error, "count:", count);
+
+                                        if (error) {
+                                            alert("Failed to disband:\n" + JSON.stringify(error, null, 2));
+                                        } else if (count === 0) {
+                                            alert(`Disband blocked by database (RLS policy). 0 rows deleted.\nGroup ID: ${group.id}\nCreated by: ${group.created_by}\nYour ID: ${userData.user?.id}`);
+                                        } else {
+                                            window.location.href = '/groups';
+                                        }
+                                    }
+                                }}
+                            >
+                                Disband Society
+                            </button>
+                        </div>
+                    )}
                 </section>
             </div>
         </div>

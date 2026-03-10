@@ -1,12 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Coffee, Users, MessageCircleHeart, UserRound } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Coffee, Users, MessageCircleHeart, UserRound, LogOut } from 'lucide-react';
 import styles from './Navbar.module.css';
+import { createClient } from '@/utils/supabase/client';
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [initial, setInitial] = useState('A');
+    const [gender, setGender] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const supabase = createClient();
+            const { data: userData } = await supabase.auth.getUser();
+            if (userData?.user) {
+                // Try to get from profile first
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('display_name, gender')
+                    .eq('id', userData.user.id)
+                    .single();
+
+                if (profileData?.display_name) {
+                    setInitial(profileData.display_name.charAt(0).toUpperCase());
+                }
+                if (profileData?.gender) {
+                    setGender(profileData.gender);
+                } else if (userData.user.user_metadata?.display_name) {
+                    setInitial(userData.user.user_metadata.display_name.charAt(0).toUpperCase());
+                } else if (userData.user.email) {
+                    setInitial(userData.user.email.charAt(0).toUpperCase());
+                }
+            }
+        };
+        fetchUser();
+    }, []);
 
     return (
         <>
@@ -42,10 +72,29 @@ export default function Navbar() {
                     </li>
                 </ul>
 
-                <div className={styles.navProfile}>
+                <div className={styles.navProfile} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <Link href="/profile">
-                        <div className="cameo cameo-sm">A</div>
+                        {gender === 'man' ? (
+                            <img src="/aesthetics/man_profile_pic.png" alt="Profile" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--wisteria)' }} />
+                        ) : gender === 'woman' ? (
+                            <img src="/aesthetics/woman_profile_pic.png" alt="Profile" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--wisteria)' }} />
+                        ) : (
+                            <div className="cameo cameo-sm">{initial}</div>
+                        )}
                     </Link>
+                    <button
+                        onClick={async () => {
+                            const sb = createClient();
+                            await sb.auth.signOut();
+                            window.location.href = '/login';
+                        }}
+                        title="Log Out"
+                        style={{ background: 'none', border: 'none', color: 'var(--wisteria)', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'opacity 0.2s ease' }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    >
+                        <LogOut size={22} />
+                    </button>
                 </div>
 
                 <button

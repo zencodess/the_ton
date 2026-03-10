@@ -10,6 +10,8 @@ export default function MyWhispers() {
     const [isComposing, setIsComposing] = useState(false);
     const [newWhisperText, setNewWhisperText] = useState("");
     const [loading, setLoading] = useState(true);
+    const [userGroups, setUserGroups] = useState<any[]>([]);
+    const [selectedGroupId, setSelectedGroupId] = useState<string>("");
     const supabase = createClient();
 
     useEffect(() => {
@@ -17,9 +19,21 @@ export default function MyWhispers() {
             const { data: userData } = await supabase.auth.getUser();
             if (!userData.user) return;
 
+            // Fetch user's groups for the dropdown when composing
+            const { data: groupMemberData } = await supabase
+                .from('group_members')
+                .select('group_id, groups(id, name)')
+                .eq('user_id', userData.user.id);
+
+            if (groupMemberData) {
+                const groups = groupMemberData.map((gm: any) => gm.groups).filter(Boolean);
+                setUserGroups(groups);
+                if (groups.length > 0) setSelectedGroupId(groups[0].id);
+            }
+
             const { data, error } = await supabase
                 .from('whispers')
-                .select('*')
+                .select('*, groups(name)')
                 .eq('author_id', userData.user.id)
                 .order('created_at', { ascending: false });
 
@@ -27,7 +41,7 @@ export default function MyWhispers() {
             setLoading(false);
         };
         fetchWhispers();
-    }, [supabase]);
+    }, []);
 
     const handleSubmit = async () => {
         if (!newWhisperText.trim()) return;
@@ -44,49 +58,48 @@ export default function MyWhispers() {
 
         if (profileError) {
             console.error("Profile creation error:", profileError);
-            alert("Database error: Could not confirm your identity profile. " + profileError.message);
+            alert("Database error: Could not confirm your identity profile. \n" + JSON.stringify(profileError, null, 2));
             return;
         }
 
-        // Fetch the first group the user belongs to
-        const { data: groupData } = await supabase.from('group_members').select('group_id').eq('user_id', userData.user.id).limit(1).single();
-        let targetGroupId = groupData?.group_id;
+        // Fetch the selected group (from the dropdown) or fall back to first group
+        let targetGroupId = selectedGroupId;
 
-        // If they have no group, create a default 'The Ton' group for them just to prevent failing inserts.
         if (!targetGroupId) {
-            const newGroupId = crypto.randomUUID();
-            const { error: groupError } = await supabase.from('groups').insert({
-                id: newGroupId,
-                name: 'The Office Ton',
-                created_by: userData.user.id
-            });
+            const { data: groupData } = await supabase.from('group_members').select('group_id').eq('user_id', userData.user.id).limit(1).single();
+            targetGroupId = groupData?.group_id;
+        }
 
-            // If the error is PGRST116 or null, the insert actually worked. (Though without .select(), PGRST116 won't happen anyway)
-            if (groupError) {
-                console.error("Group creation error:", groupError);
-                alert("Failed to create a default group. RLS Policy issue or " + groupError.message);
-                return;
-            }
-
-            targetGroupId = newGroupId;
-            await supabase.from('group_members').insert({ group_id: targetGroupId, user_id: userData.user.id, role: 'admin' });
+        // We no longer auto-create a fallback group — user should create/join one first.
+        if (!targetGroupId) {
+            alert('You are not in any society yet. Please create or join one from the Societies page.');
+            return;
         }
 
         if (targetGroupId) {
+            const newWhisperId = crypto.randomUUID();
             const newWhisper = {
+                id: newWhisperId,
                 group_id: targetGroupId,
                 author_id: userData.user.id,
                 content: newWhisperText,
             };
 
-            const { data, error } = await supabase.from('whispers').insert(newWhisper).select().single();
+            const { error } = await supabase.from('whispers').insert(newWhisper);
 
-            if (data && !error) {
-                setFeed([data, ...feed]);
+            if (!error) {
+                const groupName = userGroups.find(g => g.id === targetGroupId)?.name || 'Society';
+                const localWhisperData = {
+                    ...newWhisper,
+                    created_at: new Date().toISOString(),
+                    groups: { name: groupName }
+                };
+                setFeed([localWhisperData, ...feed]);
                 setNewWhisperText("");
                 setIsComposing(false);
             } else {
-                alert("Failed to deliver whisper: " + (error?.message || "Unknown error"));
+                console.error("Whisper submission error:", error);
+                alert("Failed to deliver whisper. \n" + JSON.stringify(error, null, 2));
             }
         }
     };
@@ -117,6 +130,27 @@ export default function MyWhispers() {
                     {isComposing && (
                         <div className="card animate-fade-in" style={{ marginBottom: 'var(--space-xl)', background: 'rgba(253, 248, 240, 0.95)', border: '2px solid var(--wisteria)' }}>
                             <h3 className="text-display" style={{ marginBottom: 'var(--space-md)', color: 'var(--ink)' }}>Pen a Whisper</h3>
+
+                            {userGroups.length > 1 && (
+                                <div style={{ marginBottom: 'var(--space-md)' }}>
+                                    <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: '0.875rem', color: 'var(--ink-light)', marginBottom: '0.25rem' }}>Whisper to Society:</label>
+                                    <select
+                                        className="input"
+                                        value={selectedGroupId}
+                                        onChange={(e) => setSelectedGroupId(e.target.value)}
+                                        style={{ fontFamily: 'var(--font-body)' }}
+                                    >
+                                        {userGroups.map((g: any) => (
+                                            <option key={g.id} value={g.id}>{g.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            {userGroups.length === 1 && (
+                                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.875rem', color: 'var(--ink-light)', marginBottom: 'var(--space-sm)' }}>
+                                    Whispering to: <strong>{userGroups[0]?.name}</strong>
+                                </p>
+                            )}
                             <textarea
                                 className="input"
                                 placeholder="What is the latest scandal?"
@@ -141,8 +175,13 @@ export default function MyWhispers() {
                             feed.map((whisper) => (
                                 <div key={whisper.id} className="card animate-fade-in" style={{ marginBottom: 'var(--space-lg)', background: 'rgba(253, 248, 240, 0.95)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <span className="tag" style={{ marginTop: '0.25rem', color: 'var(--ink-light)', border: '1px solid var(--ink-light)' }}>
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {whisper.groups?.name && (
+                                                <span style={{ background: 'var(--wisteria)', color: 'white', fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>
+                                                    {whisper.groups.name}
+                                                </span>
+                                            )}
+                                            <span className="tag" style={{ color: 'var(--ink-light)', border: '1px solid var(--ink-light)' }}>
                                                 {new Date(whisper.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
