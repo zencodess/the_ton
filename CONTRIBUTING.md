@@ -7,12 +7,12 @@ Thank you for your interest in contributing to The Ton! 🪶
 
 ## Getting Started
 
-### Prerequisites
-
 - Node.js 18+
 - npm 9+
-- A [Supabase](https://supabase.com) account (for Database & Auth)
-- An [OpenAI](https://platform.openai.com) API key (for letter generation)
+- Access to project-specific API keys (Supabase, OpenAI, etc.)
+
+> [!IMPORTANT]
+> **Please contact the repository owner for information about the required API keys and configuration settings.**
 
 ### Setup
 

@@ -50,14 +50,10 @@ npm run dev
 
 ## 🔑 API Keys Needed
 
-Create a `.env.local` file with:
+To run this project, you will need keys for Supabase, OpenAI, and Twilio.
 
-```
-NEXT_PUBLIC_SUPABASE_URL=...        # Supabase → Settings → API
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...   # Supabase → Settings → API
-OPENAI_API_KEY=...                  # platform.openai.com → API Keys
-ADMIN_EMAIL=your@email.com          # Email that can trigger letter generation
-```
+> [!IMPORTANT]
+> **Please contact the repository owner for information about the required API keys and configuration settings.**
 
 ## 📁 Project Structure
 
