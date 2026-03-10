@@ -4,7 +4,8 @@
 
 **The Ton** transforms your daily group chat into an exclusive, highly anticipated ritual of connection and playful mystery — dripping in Regency-era elegance.
 
-🌐 **Live App:** [https://theton.vercel.app](https://theton.vercel.app) *(replace with your deployed URL)*
+🌐 **Live App:** [https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/](https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/)
+📖 **Read the Story:** [I Built a Bridgerton-Inspired Social App for Friend Groups on Medium](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)
 
 ---
 
@@ -49,14 +50,10 @@ npm run dev
 
 ## 🔑 API Keys Needed
 
-Create a `.env.local` file with:
+To run this project, you will need keys for Supabase, OpenAI, and Twilio.
 
-```
-NEXT_PUBLIC_SUPABASE_URL=...        # Supabase → Settings → API
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...   # Supabase → Settings → API
-OPENAI_API_KEY=...                  # platform.openai.com → API Keys
-ADMIN_EMAIL=your@email.com          # Email that can trigger letter generation
-```
+> [!IMPORTANT]
+> **Please contact the repository owner for information about the required API keys and configuration settings.**
 
 ## 📁 Project Structure
 
@@ -112,8 +109,12 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 ## 📄 License
 
 [CC BY 4.0](LICENSE) © 2026 Sathya Sravya Vallabhajyosyula — Attribution required for any use.
+---
 
-What is life without a little inspiration? ~~gossip~~ 
+> **Live App:** [the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app](https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/)  
+> **Medium Post:** [Read the full story here](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)
+
+What is life without a little inspiration? ~~gossip~~ 😈
 
 *Yours Truly, Lady Whistledown* 🪶
 
