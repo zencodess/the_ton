@@ -8,8 +8,7 @@ Thank you for your interest in contributing to The Ton! 🪶
 
 - Node.js 18+
 - npm 9+
-- A [Supabase](https://supabase.com) account (free tier works)
-- A [Twilio](https://twilio.com) account (for SMS OTP)
+- A [Supabase](https://supabase.com) account (for Database & Auth)
 - An [OpenAI](https://platform.openai.com) API key (for letter generation)
 
 ### Setup
@@ -55,6 +54,6 @@ See `.env.example` for the full list. Never commit `.env.local` — it's in `.gi
 3. Ensure `npm run build` passes
 4. Submit a PR with a clear description
 
-## License
+This project is licensed under the [CC BY 4.0](LICENSE) License.
 
-This project is licensed under the MIT License.
+**Attribution required** — if you use this code or assets, you must credit **Sathya Sravya Vallabhajyosyula**.
