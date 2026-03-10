@@ -2,7 +2,7 @@
 
 > *"Dearest Gentle Reader, you are cordially invited to the most exclusive society in all the land..."*
 
-**The Ton** transforms your daily group chat into an exclusive, highly anticipated ritual of connection and playful mystery — dripping in Regency-era elegance.
+**The Ton** transforms your daily group chat into an exclusive, highly anticipated ritual of connection and playful mystery — dripping in Regency-era elegance. Built securely from the ground up for European Privacy by Design (GDPR, DSA, AI Act).
 
 🌐 **Live App:** [https://the-ton.vercel.app/login](https://the-ton.vercel.app/login)
 
