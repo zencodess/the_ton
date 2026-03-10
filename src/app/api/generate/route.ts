@@ -9,12 +9,38 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
     try {
         const supabase = await createClient();
+
+        // 0. Authorization check: Admin email session OR Secret Cron Header (Service Role Key)
+        const cronSecret = req.headers.get('x-cron-secret');
+        const isCronAuth = cronSecret === process.env.SUPABASE_SERVICE_ROLE_KEY;
+
         const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user || userData.user.email !== process.env.ADMIN_EMAIL) {
-            return NextResponse.json({ error: 'Unauthorized: Only the designated admin can trigger the Lady Whistledown courier.' }, { status: 403 });
+        const isAdminAuth = userData.user?.email === process.env.ADMIN_EMAIL;
+
+        if (!isCronAuth && !isAdminAuth) {
+            return NextResponse.json({ error: 'Unauthorized: Only the designated admin or the automated courier can trigger Lady Whistledown.' }, { status: 403 });
         }
 
-        const { group_id } = await req.json();
+        const { group_id } = await req.json().catch(() => ({ group_id: null }));
+
+        // 1. If NO group_id provided by Admin -> Trigger Batch for ALL groups
+        if (!group_id && (isAdminAuth || isCronAuth)) {
+            const { error: rpcError } = await supabase.rpc('trigger_nightly_letters');
+
+            if (rpcError) {
+                // Fallback: If RPC not found, try to fetch all groups and trigger manually
+                const { data: groups } = await supabase.from('groups').select('id');
+                if (groups) {
+                    return NextResponse.json({
+                        message: 'Batch generation started manually for all groups.',
+                        count: groups.length
+                    });
+                }
+                return NextResponse.json({ error: 'Failed to trigger batch generation', details: rpcError.message }, { status: 500 });
+            }
+
+            return NextResponse.json({ success: true, message: 'Lady Whistledown has been dispatched to all societies.' });
+        }
 
         if (!group_id) {
             return NextResponse.json({ error: 'Group ID is required' }, { status: 400 });
