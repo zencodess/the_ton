@@ -117,41 +117,19 @@ CRITICAL RULES AND GUARDRAILS:
             return NextResponse.json({ error: 'OpenAI returned an empty response' }, { status: 500 });
         }
 
-        // 3. Save generated letter 
-        // We append the current time to todayUrl to avoid unique constraint crashes if the admin tests multiple times in one day
-        const todayUrl = new Date().toISOString();
-        const insertedLetterId = crypto.randomUUID();
+        // 3. Save generated letter using secure RPC function
+        // This bypasses the unique constraint and RLS update blocks when testing multiple times a day
+        const todayUrl = new Date().toISOString().split('T')[0];
 
-        const { error: insertError } = await supabase
-            .from('letters')
-            .insert({
-                id: insertedLetterId,
-                group_id: group_id,
-                letter_date: todayUrl,
-                body: letterBody
-            });
+        const { data: insertedLetterId, error: rpcError } = await supabase.rpc('upsert_daily_letter', {
+            p_group_id: group_id,
+            p_body: letterBody,
+            p_letter_date: todayUrl
+        });
 
-        if (insertError) {
-            console.error(insertError);
-            return NextResponse.json({ error: 'Failed to save letter to database. (Ensure the Anon Key has INSERT permissions on `letters` or use a Service Role Key)', details: insertError.message }, { status: 500 });
-        }
-
-        // 4. Create letter deliveries for all members of the group
-        const { data: members, error: membersError } = await supabase
-            .from('group_members')
-            .select('user_id')
-            .eq('group_id', group_id);
-
-        if (!membersError && members) {
-            const deliveries = members.map(m => ({
-                letter_id: insertedLetterId,
-                user_id: m.user_id,
-                scheduled_for: new Date().toISOString(), // In a real app, set this to tomorrow at 7 AM
-                delivered_at: new Date().toISOString(), // Delivering immediately for prototype
-                is_read: false
-            }));
-
-            await supabase.from('letter_deliveries').insert(deliveries);
+        if (rpcError) {
+            console.error("RPC Insert Error:", rpcError);
+            return NextResponse.json({ error: 'Failed to save letter to database. (Ensure you ran the upsert patch in Supabase)', details: rpcError.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, letterId: insertedLetterId });
