@@ -36,8 +36,8 @@ export default function PrivacyPolicy() {
                     <h2 className="text-display" style={{ fontSize: '1.5rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-sm)' }}>4. Third-Party Processors</h2>
                     <p>To provide our service, we share necessary data with trusted third parties:</p>
                     <ul>
-                        <li><strong>Supabase:</strong> Database hosting and authentication (OTP delivery via Twilio).</li>
-                        <li><strong>OpenAI:</strong> Anonymous whisper text is processed by OpenAI's Moderation and Generative models. Phone numbers and explicit identities are never sent to OpenAI.</li>
+                        <li><strong><a href="https://supabase.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--wisteria)' }}>Supabase</a>:</strong> Database hosting and authentication.</li>
+                        <li><strong><a href="https://openai.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--wisteria)' }}>OpenAI</a>:</strong> Anonymous whisper text is processed by OpenAI's Moderation and Generative models. Explicit identities are never sent to OpenAI.</li>
                     </ul>
 
                     <h2 className="text-display" style={{ fontSize: '1.5rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-sm)' }}>5. Your Rights (AVG/GDPR)</h2>

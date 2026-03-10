@@ -88,9 +88,30 @@ export default function GroupPage() {
                             </button>
                         </div>
                         <div style={{ marginTop: 'var(--space-md)' }}>
-                            <a href={`mailto:admin@the-ton.vercel.app?subject=Reporting Society: ${group?.name}&body=Please describe the issue or abusive content found in this society:`} style={{ fontSize: '0.875rem', color: 'var(--text-muted)', textDecoration: 'underline' }}>
+                            <button
+                                onClick={async () => {
+                                    const reason = window.prompt(`Please briefly describe why you are reporting "${group?.name}" (e.g. Hate speech, abusive content):`);
+                                    if (reason && reason.trim()) {
+                                        try {
+                                            const response = await fetch('/api/report', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ group_id: group.id, group_name: group.name, reason })
+                                            });
+                                            if (response.ok) {
+                                                alert("Your report has been securely submitted to administration for review.");
+                                            } else {
+                                                alert("Failed to submit report.");
+                                            }
+                                        } catch (e) {
+                                            alert("Network error. Could not submit report.");
+                                        }
+                                    }
+                                }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-muted)', textDecoration: 'underline' }}
+                            >
                                 Report Society or Content
-                            </a>
+                            </button>
                         </div>
                     </div>
 

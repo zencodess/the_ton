@@ -70,6 +70,11 @@ export default function Navbar() {
                             Calling Card
                         </Link>
                     </li>
+                    <li>
+                        <Link href="/settings" className={styles.navLink}>
+                            Settings
+                        </Link>
+                    </li>
                 </ul>
 
                 <div className={styles.navProfile} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
