@@ -77,29 +77,42 @@ export default function MyWhispers() {
         }
 
         if (targetGroupId) {
-            const newWhisperId = crypto.randomUUID();
-            const newWhisper = {
-                id: newWhisperId,
-                group_id: targetGroupId,
-                author_id: userData.user.id,
-                content: newWhisperText,
-            };
+            try {
+                const response = await fetch('/api/whispers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        group_id: targetGroupId,
+                        content: newWhisperText
+                    })
+                });
 
-            const { error } = await supabase.from('whispers').insert(newWhisper);
+                const data = await response.json();
 
-            if (!error) {
-                const groupName = userGroups.find(g => g.id === targetGroupId)?.name || 'Society';
-                const localWhisperData = {
-                    ...newWhisper,
-                    created_at: new Date().toISOString(),
-                    groups: { name: groupName }
-                };
-                setFeed([localWhisperData, ...feed]);
-                setNewWhisperText("");
-                setIsComposing(false);
-            } else {
-                console.error("Whisper submission error:", error);
-                alert("Failed to deliver whisper. \n" + JSON.stringify(error, null, 2));
+                if (response.ok) {
+                    const groupName = userGroups.find(g => g.id === targetGroupId)?.name || 'Society';
+                    const localWhisperData = {
+                        id: data.id,
+                        group_id: targetGroupId,
+                        author_id: userData.user.id,
+                        content: newWhisperText,
+                        created_at: new Date().toISOString(),
+                        groups: { name: groupName }
+                    };
+                    setFeed([localWhisperData, ...feed]);
+                    setNewWhisperText("");
+                    setIsComposing(false);
+                } else {
+                    console.error("Whisper submission API error:", data);
+                    if (data.strike) {
+                        alert("⚠️ COMMUNITY GUIDELINE VIOLATION\n\n" + data.error);
+                    } else {
+                        alert("Failed to deliver whisper: " + (data.error || "Unknown error"));
+                    }
+                }
+            } catch (err) {
+                console.error("Network error submitting whisper:", err);
+                alert("Network error: Failed to connect to the Whispers courier service.");
             }
         }
     };

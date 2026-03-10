@@ -102,6 +102,9 @@ function LoginForm() {
                     {isLogin ? "Not yet known to the Ton? Register here." : "Already hold a calling card? Sign in."}
                 </button>
             </div>
+            <div style={{ textAlign: 'center', marginTop: 'var(--space-md)', fontSize: '0.875rem', color: 'var(--ink-light)', fontFamily: 'var(--font-body)' }}>
+                By entering, you agree to our <a href="/terms" style={{ color: 'var(--wisteria)' }}>Terms of Service (16+)</a> and <a href="/privacy" style={{ color: 'var(--wisteria)' }}>Privacy Policy</a>.
+            </div>
         </div>
     );
 }

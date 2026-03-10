@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Coffee, Users, MessageCircleHeart, UserRound, LogOut } from 'lucide-react';
+import { Coffee, Users, MessageCircleHeart, UserRound, LogOut, Settings } from 'lucide-react';
 import styles from './Navbar.module.css';
 import { createClient } from '@/utils/supabase/client';
 
@@ -68,6 +68,12 @@ export default function Navbar() {
                         <Link href="/profile" className={styles.navLink}>
                             <UserRound size={18} />
                             Calling Card
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/settings" className={styles.navLink}>
+                            <Settings size={18} />
+                            Settings
                         </Link>
                     </li>
                 </ul>

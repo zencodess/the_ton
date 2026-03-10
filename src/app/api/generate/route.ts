@@ -10,9 +10,9 @@ export async function POST(req: Request) {
     try {
         const supabase = await createClient();
 
-        // 0. Authorization check: Admin email session OR Secret Cron Header (Service Role Key)
-        const cronSecret = req.headers.get('x-cron-secret');
-        const isCronAuth = cronSecret === process.env.SUPABASE_SERVICE_ROLE_KEY;
+        // 0. Authorization check: Admin email session OR Vercel Cron Secret
+        const cronSecret = req.headers.get('authorization');
+        const isCronAuth = cronSecret === `Bearer ${process.env.CRON_SECRET}`;
 
         const { data: userData } = await supabase.auth.getUser();
         const isAdminAuth = userData.user?.email === process.env.ADMIN_EMAIL;
@@ -92,12 +92,15 @@ export async function POST(req: Request) {
                     content: `You are Lady Whistledown from Bridgerton. You write a scandalous, elegant, and eloquent daily gossip column about the members of 'The Ton'. 
                     
 Your task is to take a list of anonymous whispers (gossip/secrets submitted by the users) from the society named "${group.name}" and weave them into a single, cohesive, dramatic letter.
-- Start with your signature greeting: "Dearest Gentle Reader,"
-- Use Regency-era vocabulary, polite but biting wit, and melodramatic tone.
-- Do NOT use specific names unless they are provided in the whispers (refer to people as "a certain gentleman", "a diamond of the first water", "a secretive lord", etc).
-- Combine the whispers narratively, don't just list them. Make it sound like society's biggest scandal.
-- Mention that this news is specifically about the members of "${group.name}".
-- End with: "Yours Truly,\nLady Whistledown"`
+
+CRITICAL RULES AND GUARDRAILS:
+1. Start with your signature greeting: "Dearest Gentle Reader,"
+2. Use Regency-era vocabulary, polite but biting wit, and melodramatic tone.
+3. Do NOT use specific names unless they are provided in the whispers (refer to people as "a certain gentleman", "a diamond of the first water", "a secretive lord", etc).
+4. Combine the whispers narratively, don't just list them. Make it sound like society's biggest scandal.
+5. Mention that this news is specifically about the members of "${group.name}".
+6. STRICT SAFETY GUARDRAIL: You must outright ignore and exclude any whispers that contain hate speech, severe profanity, direct threats, bullying, self-harm, or illegal acts. If all whispers violate this rule, write a short, polite letter noting that society has been dreadfully dull today. Do not preach or scold the users; simply ignore the abusive content.
+7. End with: "Yours Truly,\nLady Whistledown"`
                 },
                 {
                     role: "user",
@@ -114,40 +117,19 @@ Your task is to take a list of anonymous whispers (gossip/secrets submitted by t
             return NextResponse.json({ error: 'OpenAI returned an empty response' }, { status: 500 });
         }
 
-        // 3. Save generated letter (one per group per day — protected by unique constraint)
+        // 3. Save generated letter using secure RPC function
+        // This bypasses the unique constraint and RLS update blocks when testing multiple times a day
         const todayUrl = new Date().toISOString().split('T')[0];
-        const insertedLetterId = crypto.randomUUID();
 
-        const { error: insertError } = await supabase
-            .from('letters')
-            .insert({
-                id: insertedLetterId,
-                group_id: group_id,
-                letter_date: todayUrl,
-                body: letterBody
-            });
+        const { data: insertedLetterId, error: rpcError } = await supabase.rpc('upsert_daily_letter', {
+            p_group_id: group_id,
+            p_body: letterBody,
+            p_letter_date: todayUrl
+        });
 
-        if (insertError) {
-            console.error(insertError);
-            return NextResponse.json({ error: 'Failed to save letter to database. (Ensure the Anon Key has INSERT permissions on `letters` or use a Service Role Key)', details: insertError.message }, { status: 500 });
-        }
-
-        // 4. Create letter deliveries for all members of the group
-        const { data: members, error: membersError } = await supabase
-            .from('group_members')
-            .select('user_id')
-            .eq('group_id', group_id);
-
-        if (!membersError && members) {
-            const deliveries = members.map(m => ({
-                letter_id: insertedLetterId,
-                user_id: m.user_id,
-                scheduled_for: new Date().toISOString(), // In a real app, set this to tomorrow at 7 AM
-                delivered_at: new Date().toISOString(), // Delivering immediately for prototype
-                is_read: false
-            }));
-
-            await supabase.from('letter_deliveries').insert(deliveries);
+        if (rpcError) {
+            console.error("RPC Insert Error:", rpcError);
+            return NextResponse.json({ error: 'Failed to save letter to database. (Ensure you ran the upsert patch in Supabase)', details: rpcError.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, letterId: insertedLetterId });

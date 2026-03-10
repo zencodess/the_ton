@@ -87,6 +87,32 @@ export default function GroupPage() {
                                 <UserPlus size={18} /> {inviteCopied ? "Copied Link!" : "Invite a Member"}
                             </button>
                         </div>
+                        <div style={{ marginTop: 'var(--space-md)' }}>
+                            <button
+                                onClick={async () => {
+                                    const reason = window.prompt(`Please briefly describe why you are reporting "${group?.name}" (e.g. Hate speech, abusive content):`);
+                                    if (reason && reason.trim()) {
+                                        try {
+                                            const response = await fetch('/api/report', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ group_id: group.id, group_name: group.name, reason })
+                                            });
+                                            if (response.ok) {
+                                                alert("Your report has been securely submitted to administration for review.");
+                                            } else {
+                                                alert("Failed to submit report.");
+                                            }
+                                        } catch (e) {
+                                            alert("Network error. Could not submit report.");
+                                        }
+                                    }
+                                }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: 'var(--text-muted)', textDecoration: 'underline' }}
+                            >
+                                Report Society or Content
+                            </button>
+                        </div>
                     </div>
 
                     {role === 'admin' && (

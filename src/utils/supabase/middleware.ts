@@ -31,14 +31,19 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
+    const isPublicRoute =
+        request.nextUrl.pathname.startsWith('/login') ||
+        request.nextUrl.pathname.startsWith('/terms') ||
+        request.nextUrl.pathname.startsWith('/privacy')
 
-    if (!user && !isAuthRoute) {
+    if (!user && !isPublicRoute) {
         // If not authenticated and trying to access a protected route, redirect to login
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
+
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
 
     if (user && isAuthRoute) {
         // If authenticated and trying to access login, redirect to foyer
