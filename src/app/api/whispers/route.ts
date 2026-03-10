@@ -44,7 +44,7 @@ export async function POST(req: Request) {
             }
 
             return NextResponse.json({
-                error: 'Your whisper violated community guidelines and was blocked. A strike has been recorded on your account.',
+                error: 'Your whisper violated community guidelines and was blocked. Your behavior has been reported.',
                 strike: true
             }, { status: 403 });
         }
