@@ -1,14 +1,8 @@
+
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
-    // Instantiate inside the function to ensure env vars are loaded by Next.js
-    const supabaseAdmin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
-
     try {
         const supabase = await createClient();
         const { data: userData, error: authError } = await supabase.auth.getUser();
@@ -23,11 +17,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing report data.' }, { status: 400 });
         }
 
-        // Insert report into the admin_alerts table
-        const { error: insertError } = await supabaseAdmin.from('admin_alerts').insert({
+        // Insert report into the admin_alerts table using standard client
+        const { error: insertError } = await supabase.from('admin_alerts').insert({
             user_id: userData.user.id, // The user submitting the report
             alert_type: 'SOCIETY_REPORT',
-            message: `Society "${group_name}" (${group_id}) was reported. Reason: ${reason}`
+            message: `Society "${group_name}"(${group_id}) was reported.Reason: ${reason} `
         });
 
         if (insertError) {
