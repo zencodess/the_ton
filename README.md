@@ -83,7 +83,7 @@ TheTon/
 You don't need to run any code! Just:
 
 1. **Visit the live app** at the link above
-2. **Register** with your email
+2. **Register with your email ID** — you will receive a secure magic link for authentication. No password required!
 3. **Complete your Calling Card** — set your name, title (Lord/Lady/etc), and gender
 4. **Create or join a Society** — share the invite link with your circle
 5. **Pen a Whisper** — your secrets are completely anonymous to other members
