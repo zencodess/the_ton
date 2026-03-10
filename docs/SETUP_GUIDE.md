@@ -1,6 +1,6 @@
 # 🔑 The Ton — Setup Guide
 
-🌐 **Live App:** [https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/](https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/)  
+🌐 **Live App:** [https://the-ton.vercel.app/login](https://the-ton.vercel.app/login)  
 📖 **Medium Story:** [I Built a Bridgerton-Inspired Social App for Friend Groups](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)
 
 ## 🏗️ Getting Started
@@ -30,5 +30,5 @@ Edit the file to include your specific keys. This file is ignored by Git to keep
 
 ---
 
-> **Live App:** [the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app](https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/)  
+> **Live App:** [the-ton.vercel.app/login](https://the-ton.vercel.app/login)  
 > **Medium Post:** [Read the full story here](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)

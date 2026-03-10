@@ -1,6 +1,6 @@
 # Contributing to The Ton
 
-🌐 **Live App:** [https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/](https://the-pzyj7qo4x-sathyas-projects-d472136d.vercel.app/)  
+🌐 **Live App:** [https://the-ton.vercel.app/login](https://the-ton.vercel.app/login)  
 📖 **Medium Story:** [I Built a Bridgerton-Inspired Social App for Friend Groups](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)
 
 Thank you for your interest in contributing to The Ton! 🪶
