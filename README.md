@@ -113,7 +113,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 
 [CC BY 4.0](LICENSE) © 2026 Sathya Sravya Vallabhajyosyula — Attribution required for any use.
 
-What is life without a little inspiration? ~~gossip~~ 😈
+What is life without a little inspiration? ~~gossip~~ 
 
 *Yours Truly, Lady Whistledown* 🪶
 
