@@ -41,10 +41,12 @@ export default function PrivacyPolicy() {
                     </ul>
 
                     <h2 className="text-display" style={{ fontSize: '1.5rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-sm)' }}>5. Your Rights (AVG/GDPR)</h2>
-                    <p>You have the right to request access to, correction of, or deletion of your personal data. You may delete your account and all associated data at any time by contacting us.</p>
+                    <p>You have the right to request access to, correction of, or permanent deletion of your personal data. You may lodge a Data Export or Account Deletion request securely at any time through your <strong>Settings</strong> page.</p>
+                    <p>For your security and privacy, these requests are logged directly to our internal database (avoiding insecure email transit) and are fulfilled manually by our administrators within the legally mandated 30-day processing window.</p>
 
-                    <h2 className="text-display" style={{ fontSize: '1.5rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-sm)' }}>6. Contact Us</h2>
-                    <p>For privacy-related questions or data deletion requests, please contact the repository owner or society administration.</p>
+                    <h2 className="text-display" style={{ fontSize: '1.5rem', marginTop: 'var(--space-lg)', marginBottom: 'var(--space-sm)' }}>6. Contact Us & Reporting</h2>
+                    <p>If you encounter abusive content, please use the <strong>Report Society or Content</strong> button located on any group page. These reports are logged securely in our internal database for administrative review.</p>
+                    <p>For privacy-related questions, please contact the repository owner or society administration directly.</p>
 
                     <div style={{ marginTop: 'var(--space-xl)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--cloud)' }}>
                         <Link href="/" style={{ color: 'var(--wisteria)', textDecoration: 'underline' }}>Return to the Foyer</Link>
