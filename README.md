@@ -2,7 +2,7 @@
 
 > *"Dearest Gentle Reader, you are cordially invited to the most exclusive society in all the land..."*
 
-**The Ton** transforms your daily group chat into an exclusive, highly anticipated ritual of connection and playful mystery — dripping in Regency-era elegance.
+**The Ton** transforms your daily group chat into an exclusive, highly anticipated ritual of connection and playful mystery — dripping in Regency-era elegance. Built securely from the ground up for European Privacy by Design (GDPR, DSA, AI Act).
 
 🌐 **Live App:** [https://the-ton.vercel.app/login](https://the-ton.vercel.app/login)
 📖 **Read the Story:** [I Built a Bridgerton-Inspired Social App for Friend Groups on Medium](https://medium.com/ai-deep-dives-and-developments-in-computer-science/i-built-a-bridgerton-inspired-social-app-for-friend-groups-and-you-can-use-it-b0803c60ec05?postPublishedType=repub)
