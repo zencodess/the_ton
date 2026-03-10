@@ -87,6 +87,11 @@ export default function GroupPage() {
                                 <UserPlus size={18} /> {inviteCopied ? "Copied Link!" : "Invite a Member"}
                             </button>
                         </div>
+                        <div style={{ marginTop: 'var(--space-md)' }}>
+                            <a href={`mailto:admin@the-ton.vercel.app?subject=Reporting Society: ${group?.name}&body=Please describe the issue or abusive content found in this society:`} style={{ fontSize: '0.875rem', color: 'var(--text-muted)', textDecoration: 'underline' }}>
+                                Report Society or Content
+                            </a>
+                        </div>
                     </div>
 
                     {role === 'admin' && (
