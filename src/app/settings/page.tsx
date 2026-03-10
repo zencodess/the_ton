@@ -56,8 +56,7 @@ export default function SettingsPage() {
             const data = await response.json();
 
             if (response.ok) {
-                // The API also clears the session, so we just redirect
-                router.push('/login?message=Your account has been permanently erased. Farewell.');
+                setMessage({ type: 'success', text: "Your account deletion request has been lodged with administration." });
             } else {
                 setMessage({ type: 'error', text: data.error || "Failed to delete account." });
                 setIsDeleting(false);
@@ -161,7 +160,7 @@ export default function SettingsPage() {
                                 <Trash2 size={18} /> {isDeleting ? "Erasing..." : "Permanently Delete Account"}
                             </button>
                             <p style={{ fontSize: '0.875rem', color: '#c62828', fontFamily: 'var(--font-body)', textAlign: 'center', margin: 0 }}>
-                                This action is instantaneous and irreversible.
+                                Administration will securely process this request within 30 days.
                             </p>
                         </div>
                     </div>
