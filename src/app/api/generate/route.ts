@@ -10,9 +10,9 @@ export async function POST(req: Request) {
     try {
         const supabase = await createClient();
 
-        // 0. Authorization check: Admin email session OR Secret Cron Header (Service Role Key)
-        const cronSecret = req.headers.get('x-cron-secret');
-        const isCronAuth = cronSecret === process.env.SUPABASE_SERVICE_ROLE_KEY;
+        // 0. Authorization check: Admin email session OR Vercel Cron Secret
+        const cronSecret = req.headers.get('authorization');
+        const isCronAuth = cronSecret === `Bearer ${process.env.CRON_SECRET}`;
 
         const { data: userData } = await supabase.auth.getUser();
         const isAdminAuth = userData.user?.email === process.env.ADMIN_EMAIL;
@@ -117,8 +117,9 @@ CRITICAL RULES AND GUARDRAILS:
             return NextResponse.json({ error: 'OpenAI returned an empty response' }, { status: 500 });
         }
 
-        // 3. Save generated letter (one per group per day — protected by unique constraint)
-        const todayUrl = new Date().toISOString().split('T')[0];
+        // 3. Save generated letter 
+        // We append the current time to todayUrl to avoid unique constraint crashes if the admin tests multiple times in one day
+        const todayUrl = new Date().toISOString();
         const insertedLetterId = crypto.randomUUID();
 
         const { error: insertError } = await supabase
