@@ -1,18 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-        console.error("Missing Supabase Service Role Key or URL.");
-        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-    }
-
-    const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceRoleKey);
-
     try {
         const supabase = await createClient();
         const { data: userData, error: authError } = await supabase.auth.getUser();
@@ -23,22 +12,27 @@ export async function POST(req: Request) {
 
         const userId = userData.user.id;
 
-        // 1. Delete the user from Auth.
-        // Doing this cascades down to Profiles, Group_Members, and Whispers if ON DELETE CASCADE is set up right
-        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        // Fetch user data for context in the alert
+        const { data: profile } = await supabase.from('profiles').select('display_name').eq('id', userId).single();
 
-        if (deleteError) {
-            console.error("Failed to delete user structure:", deleteError);
-            return NextResponse.json({ error: 'Failed to erase account.' }, { status: 500 });
+        // Insert deletion request into the admin_alerts table using standard client
+        const { error: insertError } = await supabase.from('admin_alerts').insert({
+            user_id: userId,
+            alert_type: 'ACCOUNT_DELETION_REQUEST',
+            message: `User ${profile?.display_name || userId} has requested to PERMANENTLY DELETE their account and all associated data.`
+        });
+
+        if (insertError) {
+            console.error("Failed to log deletion request:", insertError);
+            return NextResponse.json({ error: 'Failed to submit your deletion request.' }, { status: 500 });
         }
 
-        // 2. Sign out the local session
-        await supabase.auth.signOut();
-
-        return NextResponse.json({ success: true, message: 'Account erased permanently.' });
+        // We don't sign them out immediately since the admin needs time to process it,
+        // but we return a success message indicating the request is pending.
+        return NextResponse.json({ success: true, message: 'Account deletion request submitted to administration.' });
 
     } catch (error: any) {
-        console.error("API Error (Delete User):", error);
+        console.error("API Error (Delete User Request):", error);
         return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
     }
 }
