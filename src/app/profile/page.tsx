@@ -1,20 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import styles from "@/app/page.module.css";
-import { Edit2, Save } from 'lucide-react';
+import { Edit2, Save, MapPin } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { useSearchParams } from 'next/navigation';
+import cityTimezones from 'city-timezones';
 
-export default function Profile() {
+function ProfileContent() {
+    const searchParams = useSearchParams();
+    const isOnboarding = searchParams.get('onboarding') === 'true';
     const [isEditing, setIsEditing] = useState(false);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     // Form state
     const [timezone, setTimezone] = useState('');
+    const [location, setLocation] = useState('');
     const [interestsText, setInterestsText] = useState('');
     const [bio, setBio] = useState('A mysterious member of the Ton...');
-    const [displayName, setDisplayName] = useState('Anonymous');
+    const [displayName, setDisplayName] = useState('');
     const [title, setTitle] = useState('');
     const [gender, setGender] = useState('other');
 
@@ -37,6 +42,7 @@ export default function Profile() {
             if (data && !error) {
                 setProfile(data);
                 if (data.timezone) setTimezone(data.timezone);
+                if (data.location) setLocation(data.location);
                 if (data.interests) setInterestsText(data.interests.join(", "));
                 if (data.bio) setBio(data.bio);
                 if (data.display_name) setDisplayName(data.display_name);
@@ -60,9 +66,10 @@ export default function Profile() {
 
         const { error } = await supabase.from('profiles').upsert({
             id: userData.user.id,
-            display_name: displayName,
+            display_name: displayName || 'Anonymous',
             bio: bio,
             timezone: timezone,
+            location: location,
             interests: interestsText.split(',').map(i => i.trim()).filter(Boolean),
             title: title,
             gender: gender
@@ -73,6 +80,8 @@ export default function Profile() {
             console.error(error);
         } else {
             setIsEditing(false);
+            // Refresh local profile state
+            setProfile({ ...profile, display_name: displayName, location, timezone, bio, title, gender });
         }
         setLoading(false);
     };
@@ -81,12 +90,27 @@ export default function Profile() {
         <div style={{
             width: '100vw',
             minHeight: '100vh',
-            backgroundImage: 'url("/aesthetics/Profile.png")',
+            backgroundImage: 'url("/aesthetics/Profile_2.jpg")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
         }}>
             <div className="container container-narrow" style={{ paddingBottom: 'var(--space-3xl)', paddingTop: 'var(--space-2xl)' }}>
+                {isOnboarding && (
+                    <div className="card animate-fade-in" style={{
+                        background: 'rgba(253, 248, 240, 0.95)',
+                        border: '2px solid var(--gold)',
+                        textAlign: 'center',
+                        padding: 'var(--space-lg)',
+                        marginBottom: 'var(--space-xl)',
+                        boxShadow: '0 0 20px rgba(212, 175, 55, 0.3)'
+                    }}>
+                        <h2 className="text-display" style={{ color: 'var(--ink)', fontSize: '2rem' }}>Welcome to the Ton!</h2>
+                        <p className="text-script" style={{ fontSize: '1.25rem', color: 'var(--ink)' }}>
+                            Please present your calling card to society. A complete profile ensures you are received with the proper honors.
+                        </p>
+                    </div>
+                )}
                 <header className={styles.pageHeader} style={{ textAlign: 'center', marginBottom: 'var(--space-xl)' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-md)' }}>
                         <div className="cameo cameo-lg" style={{ background: 'var(--duck-egg)' }}>
@@ -119,10 +143,6 @@ export default function Profile() {
                                 <option value="Duchess">Duchess</option>
                                 <option value="Marquess">Marquess</option>
                                 <option value="Marchioness">Marchioness</option>
-                                <option value="Count/Earl">Count/Earl</option>
-                                <option value="Countess">Countess</option>
-                                <option value="Viscount">Viscount</option>
-                                <option value="Viscountess">Viscountess</option>
                                 <option value="Baron">Baron</option>
                                 <option value="Baroness">Baroness</option>
                             </select>
@@ -130,13 +150,14 @@ export default function Profile() {
                                 type="text"
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
-                                className="text-display animate-fade-in input"
-                                style={{ fontSize: '2.5rem', marginBottom: 'var(--space-sm)', color: 'var(--ink)', textAlign: 'center', background: 'transparent', border: '1px dashed var(--wisteria)' }}
+                                className="text-display animate-fade-in input-regency"
+                                placeholder="Your Regency Name (e.g. Lord Whistledown)"
+                                style={{ fontSize: '2.5rem', marginBottom: 'var(--space-sm)', color: 'var(--ink)', textAlign: 'center', width: '100%' }}
                             />
                         </div>
                     ) : (
                         <h1 className="text-display animate-fade-in" style={{ marginBottom: 'var(--space-sm)', color: 'var(--ink)' }}>
-                            {title ? `${title} ` : ''}{displayName}
+                            {title ? `${title} ` : ''}{displayName || 'Anonymous'}
                         </h1>
                     )}
 
@@ -145,8 +166,9 @@ export default function Profile() {
                             type="text"
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            className="text-script input"
-                            style={{ fontSize: '1.5rem', color: 'var(--text-secondary)', textAlign: 'center', background: 'transparent', border: '1px dashed var(--wisteria)', width: '80%' }}
+                            className="text-script input-regency"
+                            placeholder="A brief introduction..."
+                            style={{ fontSize: '1.5rem', color: 'var(--text-secondary)', textAlign: 'center', width: '80%' }}
                         />
                     ) : (
                         <p className="text-script" style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>
@@ -162,6 +184,7 @@ export default function Profile() {
 
                         {!isEditing ? (
                             <>
+                                <p style={{ color: 'var(--ink)' }}><strong>Location:</strong> {location || 'Unknown Estate'}</p>
                                 <p style={{ color: 'var(--ink)' }}><strong>Timezone:</strong> {timezone}</p>
                                 <div style={{ marginTop: 'var(--space-md)' }}>
                                     <strong style={{ color: 'var(--ink)' }}>Interests:</strong>
@@ -179,29 +202,56 @@ export default function Profile() {
                                     <select
                                         value={gender}
                                         onChange={(e) => setGender(e.target.value)}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-subtle)', background: 'transparent' }}
+                                        className="input-regency"
+                                        style={{ width: '100%' }}
                                     >
-                                        <option value="man">Man</option>
-                                        <option value="woman">Woman</option>
+                                        <option value="man">Gentleman</option>
+                                        <option value="woman">Lady</option>
                                         <option value="other">Other</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: 'var(--space-xs)', color: 'var(--ink)' }}><strong>Timezone:</strong></label>
+                                    <label style={{ display: 'block', marginBottom: 'var(--space-xs)', color: 'var(--ink)', fontSize: '0.8rem', opacity: 0.7 }}><strong>Location (City):</strong></label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type="text"
+                                            value={location}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setLocation(val);
+                                                const matches = cityTimezones.lookupViaCity(val);
+                                                if (matches && matches.length > 0) {
+                                                    setTimezone(matches[0].timezone);
+                                                }
+                                            }}
+                                            className="input-regency"
+                                            style={{ width: '100%', paddingLeft: '2.5rem' }}
+                                            placeholder="e.g. London, Paris, New York"
+                                        />
+                                        <MapPin size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-light)' }} />
+                                    </div>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--ink-light)', marginTop: '4px' }}>Determines when your letters arrive each morning.</p>
+                                </div>
+                                <div style={{ opacity: timezone ? 1 : 0.5 }}>
+                                    <label style={{ display: 'block', marginBottom: 'var(--space-xs)', color: 'var(--ink)', fontSize: '0.8rem', opacity: 0.7 }}><strong>Detected Timezone:</strong></label>
                                     <input
                                         type="text"
                                         value={timezone}
-                                        onChange={(e) => setTimezone(e.target.value)}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-subtle)', background: 'transparent' }}
+                                        readOnly
+                                        className="input-regency"
+                                        style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.3)', cursor: 'not-allowed' }}
+                                        placeholder="Auto-detected from location..."
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: 'var(--space-xs)', color: 'var(--ink)' }}><strong>Interests (comma separated):</strong></label>
+                                    <label style={{ display: 'block', marginBottom: 'var(--space-xs)', color: 'var(--ink)', fontSize: '0.8rem', opacity: 0.7 }}><strong>Interests (comma separated):</strong></label>
                                     <input
                                         type="text"
                                         value={interestsText}
                                         onChange={(e) => setInterestsText(e.target.value)}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-subtle)', background: 'transparent' }}
+                                        className="input-regency"
+                                        style={{ width: '100%' }}
+                                        placeholder="e.g. Opera, Hunting, Tea"
                                     />
                                 </div>
                             </div>
@@ -221,5 +271,13 @@ export default function Profile() {
                 </section>
             </div>
         </div>
+    );
+}
+
+export default function Profile() {
+    return (
+        <Suspense fallback={<div>Loading calling card...</div>}>
+            <ProfileContent />
+        </Suspense>
     );
 }

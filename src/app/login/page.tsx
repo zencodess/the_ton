@@ -43,18 +43,6 @@ function LoginForm() {
             )}
 
             <form className="form" action={isLogin ? login : signup}>
-                {!isLogin && (
-                    <div className="form-group">
-                        <label className="text-display" style={{ fontSize: '1.25rem' }} htmlFor="display_name">Society Name</label>
-                        <input
-                            className="input"
-                            id="display_name"
-                            name="display_name"
-                            placeholder="Lady Whistledown"
-                            required={!isLogin}
-                        />
-                    </div>
-                )}
 
                 <div className="form-group">
                     <label className="text-display" style={{ fontSize: '1.25rem' }} htmlFor="email">Email Address</label>

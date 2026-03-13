@@ -11,12 +11,17 @@ export default function Foyer() {
   const [lettersFeed, setLettersFeed] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const supabase = createClient();
 
   const fetchLetters = async () => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
+
+    // Check if current user is admin
+    const adminCheck = await fetch('/api/admin-check').then(res => res.json()).catch(() => ({ isAdmin: false }));
+    setIsAdmin(adminCheck.isAdmin);
 
     const { data, error } = await supabase
       .from('letter_deliveries')
@@ -199,13 +204,15 @@ export default function Foyer() {
 
         <div style={{ position: 'fixed', bottom: 'var(--space-xl)', right: 'var(--space-xl)', zIndex: 100, display: 'flex', gap: '1rem', flexDirection: 'column' }}>
 
-          <button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="btn btn-outline"
-            style={{ borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', background: 'rgba(253, 248, 240, 0.95)', opacity: generating ? 0.7 : 1 }}>
-            <Flame size={20} color="var(--velvet)" /> {generating ? "Summoning Courier..." : "TEST: Publish Whispers to Lady Whistledown's Letter"}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="btn btn-outline"
+              style={{ borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', background: 'rgba(253, 248, 240, 0.95)', opacity: generating ? 0.7 : 1 }}>
+              <Flame size={20} color="var(--velvet)" /> {generating ? "Summoning Courier..." : "TEST: Publish Whispers to Lady Whistledown's Letter"}
+            </button>
+          )}
 
           <Link href="/whispers">
             <button className="btn btn-primary btn-lg" style={{ borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', width: '100%', justifyContent: 'center' }}>

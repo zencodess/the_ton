@@ -11,6 +11,7 @@ interface CreateGroupModalProps {
 
 export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModalProps) {
     const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
     const [category, setCategory] = useState('other');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                     id: newGroupId,
                     invite_code: newInviteCode,
                     name,
+                    description,
                     dynamic: category,
                     created_by: userData.user.id,
                 });
@@ -165,7 +167,7 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                                         />
                                     </div>
 
-                                    <div>
+                                     <div>
                                         <label htmlFor="category" className="block text-sm font-medium text-[var(--velvet)] mb-1" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--velvet)', marginBottom: '0.25rem' }}>
                                             Dynamic (Category)
                                         </label>
@@ -187,6 +189,27 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                                             <option value="college">College Friends</option>
                                             <option value="other">Other</option>
                                         </select>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="description" className="block text-sm font-medium text-[var(--velvet)] mb-1" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--velvet)', marginBottom: '0.25rem' }}>
+                                            Society Bio (Description)
+                                        </label>
+                                        <textarea
+                                            id="description"
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            maxLength={500}
+                                            placeholder="What is the purpose of this parlor?"
+                                            rows={3}
+                                            className="w-full px-4 py-2 rounded-xl transition-all outline-none"
+                                            style={{
+                                                width: '100%', padding: '0.5rem 1rem', borderRadius: '0.75rem',
+                                                border: '1px solid var(--gold)', backgroundColor: 'var(--cream)',
+                                                outline: 'none', boxSizing: 'border-box', color: 'var(--velvet)',
+                                                resize: 'none'
+                                            }}
+                                        />
                                     </div>
 
                                     {error && (

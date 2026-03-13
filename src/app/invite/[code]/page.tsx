@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
+import { joinSocietyAction } from '../actions';
 
-export default async function InvitePage({ params }: { params: { code: string } }) {
+export default async function InvitePage({ params }: { params: Promise<{ code: string }> }) {
+    const { code } = await params;
     const supabase = await createClient();
 
     // Check if user is logged in
@@ -12,7 +14,7 @@ export default async function InvitePage({ params }: { params: { code: string } 
     const { data: group } = await supabase
         .from('groups')
         .select('*')
-        .eq('invite_code', params.code)
+        .eq('invite_code', code)
         .single();
 
     if (!group) {
@@ -44,7 +46,7 @@ export default async function InvitePage({ params }: { params: { code: string } 
 
     if (!user) {
         // Redirect to login with a returnUrl to this invite
-        redirect(`/login?returnUrl=/invite/${params.code}`);
+        redirect(`/login?returnUrl=/invite/${code}`);
     }
 
     // Check if already a member
@@ -85,22 +87,6 @@ export default async function InvitePage({ params }: { params: { code: string } 
         );
     }
 
-    // Handle Join
-    const joinSociety = async () => {
-        'use server';
-        const sbClient = await createClient();
-        const { data: authData } = await sbClient.auth.getUser();
-        if (!authData.user) return;
-
-        await sbClient.from('group_members').insert({
-            group_id: group.id,
-            user_id: authData.user.id,
-            role: 'member'
-        });
-
-        redirect('/groups');
-    };
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'url("/aesthetics/Foyer.jpg") center/cover fixed' }}>
             <div className="card ornate-border" style={{ background: 'var(--parchment)', padding: '3rem', textAlign: 'center', maxWidth: '500px', boxShadow: 'var(--shadow-card)' }}>
@@ -108,7 +94,7 @@ export default async function InvitePage({ params }: { params: { code: string } 
                 <h1 className="text-display" style={{ fontSize: '2.5rem', color: 'var(--velvet)', margin: '1rem 0' }}>{group.name}</h1>
                 <p style={{ color: 'var(--ink)', marginBottom: '2rem' }}>Current Members: {count || 0} / 10</p>
 
-                <form action={joinSociety}>
+                <form action={joinSocietyAction.bind(null, group.id)}>
                     <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>Accept Invitation</button>
                 </form>
             </div>
