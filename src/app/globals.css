@@ -140,6 +140,24 @@ h6 {
   max-width: 720px;
 }
 
+.input-regency {
+  background: rgba(253, 248, 240, 0.4);
+  border: none;
+  border-bottom: 2px solid var(--gold);
+  border-radius: 0;
+  padding: 0.5rem 0.25rem;
+  font-family: var(--font-body);
+  color: var(--ink);
+  transition: all 0.3s ease;
+  outline: none;
+  font-size: 1.1rem;
+}
+
+.input-regency:focus {
+  background: rgba(253, 248, 240, 0.7);
+  border-bottom-color: var(--velvet);
+}
+
 .text-script {
   font-family: var(--font-script);
 }

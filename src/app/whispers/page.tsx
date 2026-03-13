@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import styles from "@/app/page.module.css";
 import { PenTool } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import Link from 'next/link';
 
 export default function MyWhispers() {
     const [feed, setFeed] = useState<any[]>([]);
@@ -140,6 +141,24 @@ export default function MyWhispers() {
                 </header>
 
                 <section>
+                    {!loading && userGroups.length === 0 && (
+                        <div className="card animate-fade-in" style={{ 
+                            background: 'rgba(253, 248, 240, 0.95)', 
+                            border: '2px solid var(--velvet)', 
+                            textAlign: 'center',
+                            padding: 'var(--space-2xl)',
+                            marginBottom: 'var(--space-xl)'
+                        }}>
+                            <h2 className="text-display" style={{ color: 'var(--velvet)', marginBottom: 'var(--space-md)' }}>A Scandalous Absence!</h2>
+                            <p className="text-script" style={{ fontSize: '1.5rem', color: 'var(--ink)', marginBottom: 'var(--space-lg)' }}>
+                                It seems you have not yet been introduced to any society. One cannot whisper if there is no parlor to receive it!
+                            </p>
+                            <Link href="/groups">
+                                <button className="btn btn-primary">Discover a Society</button>
+                            </Link>
+                        </div>
+                    )}
+
                     {isComposing && (
                         <div className="card animate-fade-in" style={{ marginBottom: 'var(--space-xl)', background: 'rgba(253, 248, 240, 0.95)', border: '2px solid var(--wisteria)' }}>
                             <h3 className="text-display" style={{ marginBottom: 'var(--space-md)', color: 'var(--ink)' }}>Pen a Whisper</h3>

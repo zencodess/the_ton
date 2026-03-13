@@ -44,5 +44,5 @@ export async function signup(formData: FormData) {
 
     // Revalidate to apply new session
     revalidatePath('/', 'layout')
-    redirect('/login?message=Check your email to confirm registration or sign in immediately if email confirmation is disabled.')
+    redirect('/profile?onboarding=true')
 }
